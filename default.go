@@ -1,6 +1,10 @@
 package foundation
 
-import "time"
+import (
+	"fmt"
+	"os"
+	"time"
+)
 
 func String(v string) *string {
 	return &v
@@ -16,4 +20,20 @@ func Int(v int) *int {
 
 func Time(t time.Time) *time.Time {
 	return &t
+}
+
+func EnvStringOrPanic(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		panic(fmt.Sprintf("Env %s not provide", key))
+	}
+	return value
+}
+
+func EnvString(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
 }

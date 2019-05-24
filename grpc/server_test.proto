@@ -1,0 +1,13 @@
+syntax = "proto3";
+package grpc;
+
+service Test {
+    rpc Ping(PingInput) returns(PingOutput);
+}
+
+message PingInput {
+   string greeting = 1;
+}
+message PingOutput {
+    string greeting = 1;
+}

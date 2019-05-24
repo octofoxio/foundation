@@ -1,10 +1,5 @@
 /*
- * Copyright (c) 2019. Inception Asia
- * Maintain by DigithunWorldwide ❤
- * Maintainer
- * - rungsikorn.r@digithunworldwide.com
- * - nipon.chi@digithunworldwide.com
- * - mai@digithunworldwide.com
+ * Copyright (c) 2019. Octofox.io
  */
 
 package fs

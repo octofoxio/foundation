@@ -1,0 +1,14 @@
+syntax = "proto3";
+package app;
+
+service String {
+    rpc Concat(ConcatInput) returns(ConcatOutput);
+}
+
+message ConcatInput {
+    string origin = 1;
+    string extend = 2;
+}
+message ConcatOutput {
+    string result = 1;
+}

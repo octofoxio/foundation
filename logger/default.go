@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2019. Octofox.io
+ */
+
 package logger
 
 /*
@@ -12,6 +16,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -91,20 +96,22 @@ func (g *globalLogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	b.WriteString("\n")
 	return b.Bytes(), nil
 }
-func newPrivateLogger() logrus.FieldLogger {
-	return &logrus.Logger{
-		Out:       os.Stdout,
+func newPrivateLogger(output io.Writer) *logrus.Logger {
+	var log = &logrus.Logger{
+		Out:       output,
 		Formatter: &globalLogFormatter{},
 		Level:     logrus.DebugLevel,
 	}
+	return log
 }
 func newLogger(name string) *Logger {
-	return &Logger{
-		FieldLogger: newPrivateLogger(),
+	var log = &Logger{
+		FieldLogger: newPrivateLogger(os.Stdout),
 		Name:        name,
 		Data:        map[string]interface{}{},
 		isInitial:   true,
 	}
+	return log.WithServiceID(name)
 }
 
 type Logger struct {
@@ -118,11 +125,17 @@ type Logger struct {
 	isInitial          bool
 }
 
+func (g Logger) SetOutput(w io.Writer) *Logger {
+	g.FieldLogger = newPrivateLogger(w).WithFields(g.Data)
+	return &g
+}
+
 func (g Logger) setAttribute(key, value string) *Logger {
 	if !g.isInitial {
 		g = *New(g.Name)
 	}
 	f := *g.FieldLogger.WithField(key, value)
+	g.Data[key] = value
 	g.FieldLogger = &f
 	return &g
 }
@@ -140,6 +153,7 @@ func (g Logger) WithError(err error) *Logger {
 	}
 	return g.WithField(fieldError, err)
 }
+
 func (g Logger) WithField(key string, value interface{}) *Logger {
 	if !g.isInitial {
 		g = *New(g.Name)
@@ -151,6 +165,7 @@ func (g Logger) WithField(key string, value interface{}) *Logger {
 	}
 	return g.setAttribute(fieldData, strings.Join(toStringData[:], " | "))
 }
+
 func (g Logger) WithRequestID(value string) *Logger {
 	return g.setAttribute(fieldRequestID, value)
 }

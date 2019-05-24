@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2019. Octofox.io
+ */
+
 package fs
 
 import "testing"

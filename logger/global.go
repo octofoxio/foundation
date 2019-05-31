@@ -6,7 +6,7 @@ package logger
 
 type Fields map[string]interface{}
 
-const defaultLoggerName = "solar"
+const defaultLoggerName = "foundation"
 
 var defaultLogger = New(defaultLoggerName)
 var Default = defaultLogger

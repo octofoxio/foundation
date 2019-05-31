@@ -20,7 +20,7 @@ const (
 	ErrorTypeNotfound
 )
 
-type SolarErr struct {
+type Error struct {
 	errorsType ErrorType
 	message    string
 	detail     []string
@@ -28,43 +28,43 @@ type SolarErr struct {
 	stack      interface{}
 }
 
-func (g *SolarErr) Type() ErrorType {
+func (g *Error) Type() ErrorType {
 	return g.errorsType
 }
 
-func (g *SolarErr) Error() string {
+func (g *Error) Error() string {
 	return g.message
 }
 
-func (g *SolarErr) GetDetail() []string {
+func (g *Error) GetDetail() []string {
 	return g.detail
 }
 
-func (g *SolarErr) GetDebug() interface{} {
+func (g *Error) GetDebug() interface{} {
 	if g.debug == nil {
 		return g.stack
 	}
 	return g.debug
 }
 
-func (g SolarErr) WithDetail(detail string) *SolarErr {
+func (g Error) WithDetail(detail string) *Error {
 	g.detail = append(g.detail, detail)
 	return &g
 }
 
-func (g SolarErr) WithDebug(d interface{}) *SolarErr {
+func (g Error) WithDebug(d interface{}) *Error {
 	g.debug = d
 	return &g
 }
 
-func NewGlobErr(t ErrorType, message string) *SolarErr {
-	return &SolarErr{
+func NewGlobErr(t ErrorType, message string) *Error {
+	return &Error{
 		errorsType: t,
 		message:    message,
 	}
 }
 
-func ToGRPCError(err *SolarErr) *status.Status {
+func ToGRPCError(err *Error) *status.Status {
 	type data struct {
 		ErrorType ErrorType   `json:"type"`
 		Message   string      `json:"message"`
@@ -91,7 +91,7 @@ func ToGRPCError(err *SolarErr) *status.Status {
 	return status.New(codes.Internal, string(b))
 }
 
-func FromGRPCError(err error) (*SolarErr, bool) {
+func FromGRPCError(err error) (*Error, bool) {
 	if st, ok := status.FromError(err); ok {
 		var data struct {
 			ErrorType ErrorType
@@ -102,7 +102,7 @@ func FromGRPCError(err error) (*SolarErr, bool) {
 		if err := json.Unmarshal([]byte(st.Message()), &data); err != nil {
 			return nil, false
 		}
-		return &SolarErr{
+		return &Error{
 			errorsType: data.ErrorType,
 			detail:     data.Detail,
 			debug:      data.Debug,

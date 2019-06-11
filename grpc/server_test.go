@@ -18,6 +18,7 @@ import (
 
 type TestService struct {
 	requestID string
+	token     string
 }
 
 func (t *TestService) Ping(c context.Context, input *PingInput) (*PingOutput, error) {
@@ -65,12 +66,12 @@ func TestNewGRPCServer(t *testing.T) {
 	})
 
 	t.Run("WithSession", func(t *testing.T) {
-		ctx := AppendAuthorizationToContext(context.Background(), "TEST")
+		ctx := AppendAuthorizationToContext(context.Background(), "TESTTTT")
 		output, err := client.Ping(ctx, &PingInput{
 			Greeting: "Ho",
 		})
 		assert.Nil(t, err)
-		assert.Equal(t, output.Greeting, "TEST")
+		assert.Equal(t, output.Greeting, "TESTTTT")
 		assert.NotEmpty(t, testservice.requestID)
 	})
 

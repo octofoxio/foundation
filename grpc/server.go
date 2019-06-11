@@ -48,7 +48,7 @@ func NewGRPCServer(interceptors ...grpc.UnaryServerInterceptor) *grpc.Server {
 			return nil
 		}),
 	))
-	interceptors = append(interceptors, WithFoundationContext())
+	interceptors = append([]grpc.UnaryServerInterceptor{WithFoundationContext()}, interceptors...)
 	var grpcServerOptions = []grpc.ServerOption{
 		// To keep connection alive in-case
 		// when GRPC is working

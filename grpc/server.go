@@ -28,13 +28,13 @@ func WithFoundationContext() grpc.UnaryServerInterceptor {
 			if len(tokens) > 0 {
 				token = tokens[0]
 				if token != "" {
-					ctx = context.WithValue(ctx, foundation.FOUNDATION_ACCESS_TOKEN_CONTEXT_KEY, token)
+					ctx = context.WithValue(ctx, foundation.FoundationAccessTokenContextKey, token)
 				}
 			}
 
 			requestIDs := md.Get(GRPC_METADATA_REQUEST_ID_KEY)
 			if len(requestIDs) > 0 {
-				ctx = context.WithValue(ctx, foundation.FOUNDATION_REQUEST_ID_CONTEXT_KEY, requestIDs[0])
+				ctx = context.WithValue(ctx, foundation.FoundationRequestIDContextKey, requestIDs[0])
 			}
 		}
 		ctx = foundation.NewContext(ctx)

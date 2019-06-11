@@ -15,6 +15,7 @@ func TestNewFoundationContext(t *testing.T) {
 	c := context.Background()
 	c = NewContext(c)
 	c = AppendUserIDToContext(c, "ITS ME MARIO")
+	c = AppendMethodToContext(c, "grpc", "user.get")
 	b := bytes.NewBuffer(nil)
 
 	var log = GetLoggerFromContext(c).

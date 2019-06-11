@@ -94,10 +94,10 @@ func ToGRPCError(err *Error) *status.Status {
 func FromGRPCError(err error) (*Error, bool) {
 	if st, ok := status.FromError(err); ok {
 		var data struct {
-			ErrorType ErrorType
-			Message   string
-			Detail    []string
-			Debug     interface{}
+			ErrorType ErrorType   `json:"type"`
+			Message   string      `json:"message"`
+			Detail    []string    `json:"detail,omitempty"`
+			Debug     interface{} `json:"debug,omitempty"`
 		}
 		if err := json.Unmarshal([]byte(st.Message()), &data); err != nil {
 			return nil, false

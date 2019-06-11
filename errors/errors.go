@@ -13,11 +13,11 @@ import (
 type ErrorType int
 
 const (
-	ErrorTypeAuth ErrorType = iota
-	ErrorTypeBadInput
-	ErrorTypeInternal
-	ErrorTypeForbidden
-	ErrorTypeNotfound
+	ErrorTypeAuth      ErrorType = 401
+	ErrorTypeBadInput            = 400
+	ErrorTypeInternal            = 500
+	ErrorTypeForbidden           = 403
+	ErrorTypeNotfound            = 404
 )
 
 type Error struct {

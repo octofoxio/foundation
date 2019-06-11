@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/octofoxio/foundation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -43,11 +42,13 @@ func WithFoundationContext() grpc.UnaryServerInterceptor {
 }
 
 func NewGRPCServer(interceptors ...grpc.UnaryServerInterceptor) *grpc.Server {
-	interceptors = append(interceptors, grpc_recovery.UnaryServerInterceptor(
-		grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
-			return nil
-		}),
-	))
+	interceptors = append(interceptors)// panic interceptor must be implemented outside foundation
+	//grpc_recovery.UnaryServerInterceptor(
+	//	grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
+	//		return nil
+	//	}),
+	//),
+
 	interceptors = append([]grpc.UnaryServerInterceptor{WithFoundationContext()}, interceptors...)
 	var grpcServerOptions = []grpc.ServerOption{
 		// To keep connection alive in-case

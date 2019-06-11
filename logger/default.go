@@ -161,6 +161,9 @@ func (g Logger) WithField(key string, value interface{}) *Logger {
 	g.Data[key] = value
 	var toStringData = make([]string, 0, len(g.Data))
 	for k, v := range g.Data {
+		if k == fieldData || k == fieldError || k == fieldRequestID || k == fieldServiceID || k == fieldServiceInfo || k == fieldURL || k == fieldUserID {
+			continue
+		}
 		toStringData = append(toStringData, fmt.Sprintf("%s=%s", k, valueToString(v)))
 	}
 	return g.setAttribute(fieldData, strings.Join(toStringData[:], " | "))

@@ -17,7 +17,9 @@ func TestNewFoundationContext(t *testing.T) {
 	c = AppendUserIDToContext(c, "ITS ME MARIO")
 	b := bytes.NewBuffer(nil)
 
-	var log = GetLoggerFromContext(c).SetOutput(b)
+	var log = GetLoggerFromContext(c).
+		SetOutput(b).
+		WithField("a", "b").WithField("c", "d")
 	log.Println("Hello, world")
 	assert.Contains(t, b.String(), "Hello, world")
 	assert.Contains(t, b.String(), "ITS ME MARIO")

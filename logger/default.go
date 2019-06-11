@@ -78,11 +78,11 @@ func (g *globalLogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	)
 
 	b.WriteString(RFCDate)
-	printToBuffer(b, strings.ToUpper(entry.Level.String()), "INFO")
-	printToBuffer(b, UserID, "system")
 	if RequestID != nil {
 		b.WriteString(fmt.Sprintf("(%s)", RequestID))
 	}
+	printToBuffer(b, strings.ToUpper(entry.Level.String()), "INFO")
+	printToBuffer(b, UserID, "system")
 	if RequestURL != nil && RequestURL != "" {
 		b.WriteString(" ")
 		b.WriteString(fmt.Sprintf("%s ", RequestURL))

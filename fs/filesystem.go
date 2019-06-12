@@ -77,7 +77,7 @@ type LocalFileSystem struct {
 
 func (f *LocalFileSystem) Open(name string) (http.File, error) {
 	if name == "/" {
-		name = "index.html"
+		name = "/index.html"
 	}
 	b, err := f.GetObject(name)
 	if err != nil {

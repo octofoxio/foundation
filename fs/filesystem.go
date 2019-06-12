@@ -73,23 +73,7 @@ func (f *StatikFileSystem) GetObject(k string) ([]byte, error) {
 
 type LocalFileSystem struct {
 	rootDir string
-}
-
-func (f *LocalFileSystem) Open(name string) (http.File, error) {
-	if name == "/" {
-		name = "/index.html"
-	}
-	b, err := f.GetObject(name)
-	if err != nil {
-		return nil, err
-	}
-	return &file{
-		Reader: bytes.NewReader(b),
-		mif: fileInfo{
-			name: name,
-			data: b,
-		},
-	}, nil
+	http.Dir
 }
 
 func (f *LocalFileSystem) GetObject(key string) ([]byte, error) {
@@ -129,6 +113,7 @@ func NewFileSystem(rootDir string, mode StaticMode) FileSystem {
 		fmt.Println("Use fs with local mode")
 		return &LocalFileSystem{
 			rootDir: rootDir,
+			Dir:     http.Dir(rootDir),
 		}
 	} else {
 		panic("Static mode invalid")

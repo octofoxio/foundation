@@ -69,7 +69,7 @@ func (s *S3FileStorage) RemoveObject(key string) (err error) {
 	if err != nil {
 		return err
 	}
-	s.log.Printf("Remove file from storage %s", output.String())
+	s.log.Printf("Remove fileInfo from storage %s", output.String())
 	return nil
 }
 
@@ -130,7 +130,7 @@ func (s *S3FileStorage) PutObject(key string, data []byte) (err error) {
 	if err != nil {
 		return err
 	}
-	s.log.Printf("S3FileStorage: file upload complete, %s", *putObjectOutput.ETag)
+	s.log.Printf("S3FileStorage: fileInfo upload complete, %s", *putObjectOutput.ETag)
 	return
 
 }

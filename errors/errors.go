@@ -28,6 +28,15 @@ type Error struct {
 	stack      interface{}
 }
 
+func (g *Error) MarshalJSON() (b []byte, err error) {
+	b, err = json.Marshal(map[string]interface{}{
+		"code":    g.errorsType,
+		"message": g.message,
+		"details": g.detail,
+	})
+	return
+}
+
 func (g *Error) Type() ErrorType {
 	return g.errorsType
 }

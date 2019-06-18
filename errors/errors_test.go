@@ -4,14 +4,20 @@
 
 package errors
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 import "github.com/stretchr/testify/assert"
 
 func TestNewGlobErr(t *testing.T) {
 	err := NewGlobErr(ErrorTypeInternal, "internal error").WithDetail("TEST").WithDebug("Oh test tes")
-	assert.Equal(t, []string{"TEST"}, err.GetDetail())
-	assert.Equal(t, "internal error", err.Error())
-	assert.Equal(t, ErrorTypeInternal, err.Type())
-	assert.Equal(t, "Oh test tes", err.debug)
-	assert.Equal(t, "Oh test tes", err.GetDebug())
+	assert.EqualValues(t, []string{"TEST"}, err.GetDetail())
+	assert.EqualValues(t, "internal error", err.Error())
+	assert.EqualValues(t, ErrorTypeInternal, err.Type())
+	assert.EqualValues(t, "Oh test tes", err.debug)
+	assert.EqualValues(t, "Oh test tes", err.GetDebug())
+
+	b, _ := json.Marshal(err.WithDetail("marshal test"))
+	t.Log(string(b))
 }

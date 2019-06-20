@@ -21,16 +21,28 @@ const (
 )
 
 type Error struct {
-	errorsType ErrorType
-	message    string
-	detail     []string
-	debug      interface{}
-	stack      interface{}
+	code    ErrorType
+	message string
+	detail  []string
+	debug   interface{}
+	stack   interface{}
 }
 
+func (g *Error) UnmarshalJSON(b []byte) error {
+	var d struct {
+		Code    ErrorType `json:"code"`
+		Message string    `json:"message"`
+		Details []string  `json:"details"`
+	}
+	err := json.Unmarshal(b, &d)
+	g.code = d.Code
+	g.message = d.Message
+	g.detail = d.Details
+	return err
+}
 func (g *Error) MarshalJSON() (b []byte, err error) {
 	b, err = json.Marshal(map[string]interface{}{
-		"code":    g.errorsType,
+		"code":    g.code,
 		"message": g.message,
 		"details": g.detail,
 	})
@@ -38,7 +50,7 @@ func (g *Error) MarshalJSON() (b []byte, err error) {
 }
 
 func (g *Error) Type() ErrorType {
-	return g.errorsType
+	return g.code
 }
 
 func (g *Error) Error() string {
@@ -66,16 +78,30 @@ func (g Error) WithDebug(d interface{}) *Error {
 	return &g
 }
 
+func (g Error) WithType(t ErrorType) *Error {
+	g.code = t
+	return &g
+}
+
+// Deprecated
+// use New() instead
 func NewGlobErr(t ErrorType, message string) *Error {
 	return &Error{
-		errorsType: t,
-		message:    message,
+		code:    t,
+		message: message,
+	}
+}
+
+func New(t ErrorType, message string) *Error {
+	return &Error{
+		code:    t,
+		message: message,
 	}
 }
 
 func ToGRPCError(err *Error) *status.Status {
 	type data struct {
-		ErrorType ErrorType   `json:"type"`
+		ErrorType ErrorType   `json:"code"`
 		Message   string      `json:"message"`
 		Detail    []string    `json:"detail,omitempty"`
 		Debug     interface{} `json:"debug,omitempty"`
@@ -84,7 +110,7 @@ func ToGRPCError(err *Error) *status.Status {
 		Message:   err.message,
 		Debug:     err.debug,
 		Detail:    err.detail,
-		ErrorType: err.errorsType,
+		ErrorType: err.code,
 	})
 
 	// handle Glob Error แล้วเปลี่ยนเป็น GRPC error
@@ -103,7 +129,7 @@ func ToGRPCError(err *Error) *status.Status {
 func FromGRPCError(err error) (*Error, bool) {
 	if st, ok := status.FromError(err); ok {
 		var data struct {
-			ErrorType ErrorType   `json:"type"`
+			ErrorType ErrorType   `json:"code"`
 			Message   string      `json:"message"`
 			Detail    []string    `json:"detail,omitempty"`
 			Debug     interface{} `json:"debug,omitempty"`
@@ -112,10 +138,10 @@ func FromGRPCError(err error) (*Error, bool) {
 			return nil, false
 		}
 		return &Error{
-			errorsType: data.ErrorType,
-			detail:     data.Detail,
-			debug:      data.Debug,
-			message:    data.Message,
+			code:    data.ErrorType,
+			detail:  data.Detail,
+			debug:   data.Debug,
+			message: data.Message,
 		}, true
 	} else {
 		return nil, false

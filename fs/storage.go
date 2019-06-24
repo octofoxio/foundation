@@ -15,6 +15,7 @@ import (
 	"github.com/octofoxio/foundation/logger"
 	"io"
 	"io/ioutil"
+	url2 "net/url"
 	"os"
 	"path"
 	"time"
@@ -62,6 +63,9 @@ func (s *S3FileStorage) GetObjectURL(key string) (url string, err error) {
 
 func (s *S3FileStorage) RemoveObject(key string) (err error) {
 	s3Client, err := s.s3()
+	if err != nil {
+		return err
+	}
 	output, err := s3Client.DeleteObject(&s3.DeleteObjectInput{
 		Key:    aws.String(key),
 		Bucket: aws.String(s.BucketName),
@@ -166,10 +170,15 @@ func (l *LocalFileStorage) GetJSONObject(key string, data interface{}) (err erro
 // GetObjectURL require to implement path for it (local only)
 // see dev_api on local storage URL support
 func (l *LocalFileStorage) GetObjectURL(key string) (url string, err error) {
-	if _, err := os.Stat(path.Join(l.Path, key)); os.IsNotExist(err) {
+	filePath := path.Join(l.Path, key)
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return "", nil
 	}
-	return fmt.Sprintf("/assets/%s", key), nil
+	pathURL := url2.URL{
+		Path:   filePath,
+		Scheme: "file",
+	}
+	return pathURL.String(), nil
 }
 
 func (l *LocalFileStorage) RemoveObject(key string) (err error) {

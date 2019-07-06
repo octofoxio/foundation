@@ -2,7 +2,7 @@
  * Copyright (c) 2019. Octofox.io
  */
 
-package fs
+package foundation
 
 import (
 	"bufio"

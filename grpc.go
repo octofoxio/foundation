@@ -2,13 +2,12 @@
  * Copyright (c) 2019. Octofox.io
  */
 
-package grpc
+package foundation
 
 import (
 	"context"
 	"fmt"
 	"github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/octofoxio/foundation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
@@ -27,27 +26,23 @@ func WithFoundationContext() grpc.UnaryServerInterceptor {
 			if len(tokens) > 0 {
 				token = tokens[0]
 				if token != "" {
-					ctx = context.WithValue(ctx, foundation.FoundationAccessTokenContextKey, token)
+					ctx = context.WithValue(ctx, FoundationAccessTokenContextKey, token)
 				}
 			}
 
 			requestIDs := md.Get(GRPC_METADATA_REQUEST_ID_KEY)
 			if len(requestIDs) > 0 {
-				ctx = context.WithValue(ctx, foundation.FoundationRequestIDContextKey, requestIDs[0])
+				ctx = context.WithValue(ctx, FoundationRequestIDContextKey, requestIDs[0])
 			}
 		}
-		ctx = foundation.NewContext(ctx)
+		ctx = NewContext(ctx)
+		ctx = AppendRequestIDToContext(ctx, GetRequestIDFromContext(ctx))
 		return handler(ctx, req)
 	}
 }
 
 func NewGRPCServer(interceptors ...grpc.UnaryServerInterceptor) *grpc.Server {
-	interceptors = append(interceptors)// panic interceptor must be implemented outside foundation
-	//grpc_recovery.UnaryServerInterceptor(
-	//	grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
-	//		return nil
-	//	}),
-	//),
+	interceptors = append(interceptors) // panic interceptor must be implemented outside foundation
 
 	interceptors = append([]grpc.UnaryServerInterceptor{WithFoundationContext()}, interceptors...)
 	var grpcServerOptions = []grpc.ServerOption{
@@ -63,8 +58,8 @@ func NewGRPCServer(interceptors ...grpc.UnaryServerInterceptor) *grpc.Server {
 	}
 
 	// Use TLS certification if provide to ENV
-	if certPath := foundation.EnvString(OCTOFOX_FOUNDATION_GRPC_CERT, ""); certPath != "" {
-		keyPath := foundation.EnvStringOrPanic(OCTOFOX_FOUNDATION_GRPC_KEY)
+	if certPath := EnvString(OCTOFOX_FOUNDATION_GRPC_CERT, ""); certPath != "" {
+		keyPath := EnvStringOrPanic(OCTOFOX_FOUNDATION_GRPC_KEY)
 		creds, err := credentials.NewServerTLSFromFile(certPath, keyPath)
 		if err != nil {
 			panic(fmt.Errorf("could not load TLS keys: %s", err))

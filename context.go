@@ -8,6 +8,7 @@ import (
 	"context"
 	"github.com/octofoxio/foundation/logger"
 	"github.com/rs/xid"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -73,9 +74,18 @@ func GetRequestIDFromContext(ctx context.Context) string {
 
 func NewContext(ctx context.Context) context.Context {
 	if requestID, ok := ctx.Value(FoundationRequestIDContextKey).(string); !ok || requestID == "" {
-		ctx = context.WithValue(ctx, FoundationRequestIDContextKey, xid.New().String())
+		requestID = xid.New().String()
+		ctx = context.WithValue(ctx, FoundationRequestIDContextKey, requestID)
 	}
 	var log = logger.New("foundation").WithRequestID(GetRequestIDFromContext(ctx))
 	ctx = AppendLoggerToContext(ctx, log)
 	return ctx
+}
+
+func AppendAuthorizationToContext(ctx context.Context, accessToken string) context.Context {
+	return metadata.AppendToOutgoingContext(ctx, GRPC_METADATA_AUTHORIZATION_KEY, accessToken)
+}
+
+func AppendRequestIDToContext(ctx context.Context, requestID string) context.Context {
+	return metadata.AppendToOutgoingContext(ctx, GRPC_METADATA_REQUEST_ID_KEY, requestID)
 }

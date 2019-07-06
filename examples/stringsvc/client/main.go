@@ -7,13 +7,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/octofoxio/foundation"
 	"github.com/octofoxio/foundation/examples/stringsvc/app"
-	"github.com/octofoxio/foundation/grpc"
 )
 
 func main() {
 
-	conn := grpc.MakeDialOrPanic("localhost:3010")
+	conn := foundation.MakeDialOrPanic("localhost:3010")
 	stringsvcClient := app.NewStringClient(conn)
 	result, err := stringsvcClient.Concat(context.Background(), &app.ConcatInput{
 		Origin: "Hello",

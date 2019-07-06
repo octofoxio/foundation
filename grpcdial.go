@@ -2,11 +2,10 @@
  * Copyright (c) 2019. Octofox.io
  */
 
-package grpc
+package foundation
 
 import (
 	"context"
-	"github.com/octofoxio/foundation"
 	"github.com/octofoxio/foundation/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -44,7 +43,7 @@ func MakeDial(endpoint string, dialOptions ...grpc.DialOption) (*grpc.ClientConn
 		options = append(options, o)
 	}
 
-	if certPath := foundation.EnvString(OCTOFOX_FOUNDATION_GRPC_CERT, ""); certPath != "" {
+	if certPath := EnvString(OCTOFOX_FOUNDATION_GRPC_CERT, ""); certPath != "" {
 		creds, err := credentials.NewClientTLSFromFile(certPath, "")
 		if err != nil {
 			panic(err)

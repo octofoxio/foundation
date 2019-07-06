@@ -7,8 +7,8 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"github.com/octofoxio/foundation"
 	"github.com/octofoxio/foundation/examples/stringsvc/app"
-	"github.com/octofoxio/foundation/grpc"
 	"github.com/octofoxio/foundation/http"
 	"github.com/octofoxio/foundation/logger"
 	"net"
@@ -40,7 +40,7 @@ func main() {
 	var log = logger.New("stringsvc").WithServiceInfo("main")
 	stringsvc := app.NewStringSvc()
 
-	grpcServer := grpc.NewGRPCServer()
+	grpcServer := foundation.NewGRPCServer()
 	app.RegisterStringServer(grpcServer, stringsvc)
 	go func() {
 		lis, err := net.Listen("tcp", "0.0.0.0:3010")

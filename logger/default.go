@@ -148,7 +148,7 @@ func (g Logger) Printf(format string, args ...interface{}) {
 }
 
 func (g Logger) WithError(err error) *Logger {
-	return g.setAttribute(fieldError, err)
+	return g.setAttribute(fieldError, err.Error())
 }
 
 func (g Logger) WithField(key string, value interface{}) *Logger {

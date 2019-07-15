@@ -148,10 +148,7 @@ func (g Logger) Printf(format string, args ...interface{}) {
 }
 
 func (g Logger) WithError(err error) *Logger {
-	if !g.isInitial {
-		g = *New(g.Name)
-	}
-	return g.WithField(fieldError, err)
+	return g.setAttribute(fieldError, value)
 }
 
 func (g Logger) WithField(key string, value interface{}) *Logger {

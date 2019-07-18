@@ -67,12 +67,26 @@ func (g *globalLogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	} else {
 		b = &bytes.Buffer{}
 	}
+
+	// format data string
+	var Data interface{}
+	var toStringData= make([]string, 0, len(entry.Data))
+	for k, v := range entry.Data {
+		if k == fieldData || k == fieldRequestID || k == fieldServiceID || k == fieldServiceInfo || k == fieldURL || k == fieldUserID {
+			continue
+		}
+		toStringData = append(toStringData, fmt.Sprintf("%s=%s", k, valueToString(v)))
+	}
+	// print data only with value
+	if len(toStringData) > 0 {
+		Data = strings.Join(toStringData[:], " | ")
+	}
+
 	var (
 		RFCDate     = time.Now().Format(time.RFC1123Z + " ")
 		ServiceID   = entry.Data[fieldServiceID]
 		ServiceInfo = entry.Data[fieldServiceInfo]
 		UserID      = entry.Data[fieldUserID]
-		Data        = entry.Data[fieldData]
 		RequestID   = entry.Data[fieldRequestID]
 		RequestURL  = entry.Data[fieldURL]
 	)
@@ -130,7 +144,18 @@ func (g Logger) SetOutput(w io.Writer) *Logger {
 	return &g
 }
 
-func (g Logger) setAttribute(key, value string) *Logger {
+func (g Logger) Printf(format string, args ...interface{}) {
+	if !g.isInitial {
+		g = *New(g.Name)
+	}
+	g.FieldLogger.Printf(format, args...)
+}
+
+func (g Logger) WithError(err error) *Logger {
+	return g.WithField(fieldError, err)
+}
+
+func (g Logger) WithField(key string, value interface{}) *Logger {
 	if !g.isInitial {
 		g = *New(g.Name)
 	}
@@ -140,49 +165,23 @@ func (g Logger) setAttribute(key, value string) *Logger {
 	return &g
 }
 
-func (g Logger) Printf(format string, args ...interface{}) {
-	if !g.isInitial {
-		g = *New(g.Name)
-	}
-	g.FieldLogger.Printf(format, args...)
-}
-
-func (g Logger) WithError(err error) *Logger {
-	return g.WithField(fieldError, err.Error())
-}
-
-func (g Logger) WithField(key string, value interface{}) *Logger {
-	if !g.isInitial {
-		g = *New(g.Name)
-	}
-	g.Data[key] = value
-	var toStringData = make([]string, 0, len(g.Data))
-	for k, v := range g.Data {
-		if k == fieldData || k == fieldRequestID || k == fieldServiceID || k == fieldServiceInfo || k == fieldURL || k == fieldUserID {
-			continue
-		}
-		toStringData = append(toStringData, fmt.Sprintf("%s=%s", k, valueToString(v)))
-	}
-	return g.setAttribute(fieldData, strings.Join(toStringData[:], " | "))
-}
-
 func (g Logger) WithRequestID(value string) *Logger {
-	return g.setAttribute(fieldRequestID, value)
+	return g.WithField(fieldRequestID, value)
 }
 func (g Logger) WithServiceID(value string) *Logger {
-	return g.setAttribute(fieldServiceID, value)
+	return g.WithField(fieldServiceID, value)
 }
 
 func (g Logger) WithServiceInfo(value string) *Logger {
-	return g.setAttribute(fieldServiceInfo, value)
+	return g.WithField(fieldServiceInfo, value)
 }
 
 func (g Logger) WithURL(method string, url string) *Logger {
-	return g.setAttribute(fieldURL, fmt.Sprintf("%s %s", method, url))
+	return g.WithField(fieldURL, fmt.Sprintf("%s %s", method, url))
 }
 
 func (g Logger) WithUserID(ID string) *Logger {
-	return g.setAttribute(fieldUserID, ID)
+	return g.WithField(fieldUserID, ID)
 }
 
 func New(name string) *Logger {

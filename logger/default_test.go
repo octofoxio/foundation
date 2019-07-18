@@ -28,8 +28,11 @@ func TestNewGlobalLogger(t *testing.T) {
 		serviceInfoUserLogger.Println("Hi ja")
 		serviceInfoUserWithFieldLogger.WithField("RemittanceID", "009182JBBAS831").Println("Hi ja kub")
 		serviceLogger.WithRequestID("37e28213684b755066033e7abca4ccf3").Println("With request ID")
-		err := errors.New("Some error")
-		serviceInfoUserLogger.WithError(err).Error("This is some error description")
+		serviceInfoUserLogger.WithField("method", "test" ).Info("test method")
+		serviceInfoUserLogger.WithField("req", "test" ).Info("test req, must not contain method")
+		err := errors.New("some error")
+		serviceInfoUserLogger.WithError(err).Error("This is some error description, must not contain other fields")
+		serviceInfoUserLogger.Info("log info, must not contain error")
 	})
 
 	t.Run("It should use the same instance of formatter but different logger", func(t *testing.T) {

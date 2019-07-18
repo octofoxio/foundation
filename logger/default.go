@@ -148,7 +148,7 @@ func (g Logger) Printf(format string, args ...interface{}) {
 }
 
 func (g Logger) WithError(err error) *Logger {
-	return g.setAttribute(fieldError, err.Error())
+	return g.WithField(fieldError, err.Error())
 }
 
 func (g Logger) WithField(key string, value interface{}) *Logger {
@@ -158,7 +158,7 @@ func (g Logger) WithField(key string, value interface{}) *Logger {
 	g.Data[key] = value
 	var toStringData = make([]string, 0, len(g.Data))
 	for k, v := range g.Data {
-		if k == fieldData || k == fieldError || k == fieldRequestID || k == fieldServiceID || k == fieldServiceInfo || k == fieldURL || k == fieldUserID {
+		if k == fieldData || k == fieldRequestID || k == fieldServiceID || k == fieldServiceInfo || k == fieldURL || k == fieldUserID {
 			continue
 		}
 		toStringData = append(toStringData, fmt.Sprintf("%s=%s", k, valueToString(v)))

@@ -1,14 +1,11 @@
 syntax = "proto3";
 
-package foundation.primitive.v1;
+package foundation.primitive;
 
-option csharp_namespace = "Foundation.Primitive.V1";
-option go_package = "primitivev1";
+option go_package = "primitivepb";
 option java_multiple_files = true;
 option java_outer_classname = "PrimitiveProto";
-option java_package = "com.foundation.primitive.v1";
-option objc_class_prefix = "FPX";
-option php_namespace = "Foundation\\Primitive\\V1";
+option java_package = "com.foundation.primitive";
 
 // ISOTime use as Date field.
 message ISOTime {

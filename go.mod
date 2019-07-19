@@ -1,7 +1,9 @@
 module github.com/octofoxio/foundation
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/aws/aws-sdk-go v1.19.35
+	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/protobuf v1.3.1
 	github.com/gorilla/mux v1.7.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0

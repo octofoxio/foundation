@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package foundation.primitive.v1;
+
+option csharp_namespace = "Foundation.Primitive.V1";
+option go_package = "primitivev1";
+option java_multiple_files = true;
+option java_outer_classname = "PrimitiveProto";
+option java_package = "com.foundation.primitive.v1";
+option objc_class_prefix = "FPX";
+option php_namespace = "Foundation\\Primitive\\V1";
+
+// ISOTime use as Date field.
+message ISOTime {
+  string v = 1;
+  bool is_null = 2;
+}
+
+// String use as string which able to set to null value.
+message String {
+  string v = 1;
+  bool is_null = 2;
+}
+
+// Int use as int64 which able to set to null value.
+message Int {
+  int64 v = 1;
+  bool is_null = 2;
+}
+
+// Double use as float which able to set to null value.
+message Double {
+  double v = 1;
+  bool is_null = 2;
+}
+
+// Boolean use as boolean value which nullable.
+message Boolean {
+  bool v = 1;
+  bool is_null = 2;
+}

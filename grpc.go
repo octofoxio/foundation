@@ -5,46 +5,18 @@
 package foundation
 
 import (
-	"context"
 	"fmt"
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
-	"google.golang.org/grpc/metadata"
 	"time"
 )
-
-func WithFoundationContext() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		// Try to get metadata "Authorization" from
-		// request context
-		md, ok := metadata.FromIncomingContext(ctx)
-		if ok {
-			var token string
-			tokens := md.Get(GRPC_METADATA_AUTHORIZATION_KEY)
-			if len(tokens) > 0 {
-				token = tokens[0]
-				if token != "" {
-					ctx = context.WithValue(ctx, FoundationAccessTokenContextKey, token)
-				}
-			}
-
-			requestIDs := md.Get(GRPC_METADATA_REQUEST_ID_KEY)
-			if len(requestIDs) > 0 {
-				ctx = context.WithValue(ctx, FoundationRequestIDContextKey, requestIDs[0])
-			}
-		}
-		ctx = NewContext(ctx)
-		ctx = AppendRequestIDToContext(ctx, GetRequestIDFromContext(ctx))
-		return handler(ctx, req)
-	}
-}
 
 func NewGRPCServer(interceptors ...grpc.UnaryServerInterceptor) *grpc.Server {
 	interceptors = append(interceptors) // panic interceptor must be implemented outside foundation
 
-	interceptors = append([]grpc.UnaryServerInterceptor{WithFoundationContext()}, interceptors...)
+	interceptors = append([]grpc.UnaryServerInterceptor{}, interceptors...)
 	var grpcServerOptions = []grpc.ServerOption{
 		// To keep connection alive in-case
 		// when GRPC is working

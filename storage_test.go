@@ -16,8 +16,7 @@ import (
 func TestNewLocalFileStorage(t *testing.T) {
 	wd, _ := os.Getwd()
 	local := NewLocalFileStorage(wd)
-
-	u, err := GetObjectURL("./storage.go")
+	u, err := local.GetObjectURL("./storage.go")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, u)
 	t.Log(u)

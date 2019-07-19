@@ -6,6 +6,7 @@ package foundation
 
 import (
 	"context"
+	"github.com/octofoxio/foundation/logger"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/reflection"
 	"net"
@@ -55,8 +56,13 @@ func TestNewGRPCServer(t *testing.T) {
 	_ = os.Setenv(OCTOFOX_FOUNDATION_GRPC_CERT, certPath)
 	_ = os.Setenv(OCTOFOX_FOUNDATION_GRPC_KEY, certKey)
 
-	serv := NewGRPCServer()
-	serv2 := NewGRPCServer()
+	serv := NewGRPCServer(
+		WithContextServerInterceptor(),
+		WithMethodCallingLoggerServerInterceptor(logger.New("test")),
+	)
+	serv2 := NewGRPCServer(
+		WithContextServerInterceptor(),
+	)
 	testservice := &TestService{}
 	RegisterTestServer(serv, testservice)
 	testservice2 := &TestService2{}

@@ -7,6 +7,9 @@ option java_multiple_files = true;
 option java_outer_classname = "PrimitiveProto";
 option java_package = "com.foundation.primitive";
 
+// Empty just a dumb empty message
+message Empty {}
+
 // ISOTime use as Date field.
 message ISOTime {
   string v = 1;

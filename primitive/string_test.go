@@ -2,7 +2,7 @@
  * Copyright (c) 2019. Octofox.io
  */
 
-package primitivev1
+package primitivepb
 
 import (
 	"github.com/stretchr/testify/assert"

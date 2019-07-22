@@ -1,4 +1,4 @@
-package primitivev1
+package primitivepb
 
 import (
 	"database/sql/driver"

@@ -6,9 +6,11 @@ package logger
 
 import (
 	"errors"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestNewGlobalLogger(t *testing.T) {
@@ -28,8 +30,8 @@ func TestNewGlobalLogger(t *testing.T) {
 		serviceInfoUserLogger.Println("Hi ja")
 		serviceInfoUserWithFieldLogger.WithField("RemittanceID", "009182JBBAS831").Println("Hi ja kub")
 		serviceLogger.WithRequestID("37e28213684b755066033e7abca4ccf3").Println("With request ID")
-		serviceInfoUserLogger.WithField("method", "test" ).Info("test method")
-		serviceInfoUserLogger.WithField("req", "test" ).Info("test req, must not contain method")
+		serviceInfoUserLogger.WithField("method", "test").Info("test method")
+		serviceInfoUserLogger.WithField("req", "test").Info("test req, must not contain method")
 		err := errors.New("some error")
 		serviceInfoUserLogger.WithError(err).Error("This is some error description, must not contain other fields")
 		serviceInfoUserLogger.Info("log info, must not contain error")
@@ -50,4 +52,20 @@ func TestNewGlobalLogger(t *testing.T) {
 		l.Info(("HI"))
 
 	})
+}
+
+func TestConcurrent(t *testing.T) {
+	log := newLogger("concurrency")
+
+	routine := func(name string) {
+		for i := 0; i < 10; i++ {
+			log.WithField(name, i).Infof("log")
+		}
+	}
+
+	for i := 0; i < 1000; i++ {
+		go routine(fmt.Sprintf("t%d", i))
+	}
+
+	time.Sleep(2 * time.Second)
 }

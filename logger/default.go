@@ -19,6 +19,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -70,7 +71,7 @@ func (g *globalLogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 	// format data string
 	var Data interface{}
-	var toStringData= make([]string, 0, len(entry.Data))
+	var toStringData = make([]string, 0, len(entry.Data))
 	for k, v := range entry.Data {
 		if k == fieldData || k == fieldRequestID || k == fieldServiceID || k == fieldServiceInfo || k == fieldURL || k == fieldUserID {
 			continue
@@ -124,6 +125,7 @@ func newLogger(name string) *Logger {
 		Name:        name,
 		Data:        map[string]interface{}{},
 		isInitial:   true,
+		mux:         &sync.Mutex{},
 	}
 	return log.WithServiceID(name)
 }
@@ -137,6 +139,7 @@ type Logger struct {
 	logrus.FieldLogger // Logger instance
 	Data               map[string]interface{}
 	isInitial          bool
+	mux                *sync.Mutex
 }
 
 func (g Logger) SetOutput(w io.Writer) *Logger {
@@ -160,7 +163,12 @@ func (g Logger) WithField(key string, value interface{}) *Logger {
 		g = *New(g.Name)
 	}
 	f := *g.FieldLogger.WithField(key, value)
+	if g.mux == nil {
+		g.mux = &sync.Mutex{}
+	}
+	g.mux.Lock()
 	g.Data[key] = value
+	g.mux.Unlock()
 	g.FieldLogger = &f
 	return &g
 }

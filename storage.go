@@ -57,7 +57,10 @@ func (s *S3FileStorage) GetObjectURL(key string) (url string, err error) {
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
 	})
-	url, err = request.Presign(10 * time.Minute)
+	if err = request.Send(); err != nil {
+		return
+	}
+	url = fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.BucketName, *s3Client.Config.Region, key)
 	return
 }
 
@@ -89,7 +92,7 @@ func (s *S3FileStorage) GetPreSignUploadURL(key string, size int64) (url string,
 		ContentLength: aws.Int64(size),
 	})
 
-	url, err = request.Presign(10 * time.Minute)
+	url, err = request.Presign(24 * 7 * time.Hour)
 	return
 }
 
@@ -130,6 +133,7 @@ func (s *S3FileStorage) PutObject(key string, data []byte) (err error) {
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
 		Body:   r,
+		ACL:    aws.String("public-read"),
 	})
 	if err != nil {
 		return err

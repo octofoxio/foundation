@@ -24,9 +24,11 @@ import (
 type FileStorage interface {
 	GetObject(key string) (result []byte, err error)
 	PutObject(key string, data []byte) (err error)
+	PutPublicObject(key string, data []byte) (err error)
 	RemoveObject(key string) (err error)
 	GetJSONObject(key string, data interface{}) (err error)
 	GetObjectURL(key string) (url string, err error)
+	GetObjectPreSignURL(key string) (url string, err error)
 	GetObjectReader(key string) (result io.ReadCloser, err error)
 	GetPreSignUploadURL(key string, size int64) (url string, err error)
 }
@@ -35,6 +37,15 @@ type S3FileStorage struct {
 	BucketName string
 	awsConfig  *aws.Config
 	log        *logger.Logger
+}
+
+func (s *S3FileStorage) s3() (s3Client *s3.S3, err error) {
+	awsSession, err := session.NewSession(s.awsConfig)
+	if err != nil {
+		return
+	}
+	s3Client = s3.New(awsSession)
+	return
 }
 
 func (s *S3FileStorage) GetJSONObject(key string, data interface{}) (err error) {
@@ -61,6 +72,19 @@ func (s *S3FileStorage) GetObjectURL(key string) (url string, err error) {
 		return
 	}
 	url = fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.BucketName, *s3Client.Config.Region, key)
+	return
+}
+
+func (s *S3FileStorage) GetObjectPreSignURL(key string) (url string, err error) {
+	s3Client, err := s.s3()
+	if err != nil {
+		return
+	}
+	request, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(s.BucketName),
+		Key:    aws.String(key),
+	})
+	url, err = request.Presign(7 * 24 * time.Hour)
 	return
 }
 
@@ -92,7 +116,7 @@ func (s *S3FileStorage) GetPreSignUploadURL(key string, size int64) (url string,
 		ContentLength: aws.Int64(size),
 	})
 
-	url, err = request.Presign(24 * 7 * time.Hour)
+	url, err = request.Presign(15 * time.Minute)
 	return
 }
 
@@ -112,17 +136,26 @@ func (s *S3FileStorage) GetObjectReader(key string) (reader io.ReadCloser, err e
 	return
 }
 
-func (s *S3FileStorage) s3() (s3Client *s3.S3, err error) {
-	awsSession, err := session.NewSession(s.awsConfig)
+func (s *S3FileStorage) PutObject(key string, data []byte) (err error) {
+	s3Client, err := s.s3()
 	if err != nil {
-		return
+		return err
 	}
-	s3Client = s3.New(awsSession)
+
+	r := bytes.NewReader(data)
+	putObjectOutput, err := s3Client.PutObject(&s3.PutObjectInput{
+		Bucket: aws.String(s.BucketName),
+		Key:    aws.String(key),
+		Body:   r,
+	})
+	if err != nil {
+		return err
+	}
+	s.log.Printf("S3FileStorage: fileInfo upload complete, %s", *putObjectOutput.ETag)
 	return
 }
 
-func (s *S3FileStorage) PutObject(key string, data []byte) (err error) {
-
+func (s *S3FileStorage) PutPublicObject(key string, data []byte) (err error) {
 	s3Client, err := s.s3()
 	if err != nil {
 		return err
@@ -140,7 +173,6 @@ func (s *S3FileStorage) PutObject(key string, data []byte) (err error) {
 	}
 	s.log.Printf("S3FileStorage: fileInfo upload complete, %s", *putObjectOutput.ETag)
 	return
-
 }
 
 func (s *S3FileStorage) GetObject(key string) (result []byte, err error) {
@@ -183,6 +215,10 @@ func (l *LocalFileStorage) GetObjectURL(key string) (url string, err error) {
 		Scheme: "file",
 	}
 	return pathURL.String(), nil
+}
+
+func (l *LocalFileStorage) GetObjectPreSignURL(key string) (url string, err error) {
+	return l.GetObjectURL(key)
 }
 
 func (l *LocalFileStorage) RemoveObject(key string) (err error) {
@@ -237,6 +273,10 @@ func (l *LocalFileStorage) PutObject(key string, data []byte) (err error) {
 	}
 
 	return err
+}
+
+func (l *LocalFileStorage) PutPublicObject(key string, data []byte) (err error) {
+	return l.PutObject(key, data)
 }
 
 func (l *LocalFileStorage) GetObject(key string) (result []byte, err error) {

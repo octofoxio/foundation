@@ -64,13 +64,16 @@ func (s *S3FileStorage) GetObjectURL(key string) (url string, err error) {
 	if err != nil {
 		return
 	}
+	urlParse, err := url2.Parse(fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.BucketName, *s3Client.Config.Region, key))
+	if err != nil {
+		return "", err
+	}
+
+	url = urlParse.String()
 	request, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
 	})
-
-	urlParse, err := url2.Parse(fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.BucketName, *s3Client.Config.Region, key))
-	url = urlParse.String()
 
 	if err = request.Send(); err != nil {
 		return
@@ -210,12 +213,12 @@ func (l *LocalFileStorage) GetJSONObject(key string, data interface{}) (err erro
 // see dev_api on local storage URL support
 func (l *LocalFileStorage) GetObjectURL(key string) (url string, err error) {
 	filePath := path.Join(l.Path, key)
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		return "", nil
-	}
 	pathURL := url2.URL{
 		Path:   filePath,
 		Scheme: "file",
+	}
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return pathURL.String(), err
 	}
 	return pathURL.String(), nil
 }

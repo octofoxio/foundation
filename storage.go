@@ -68,11 +68,13 @@ func (s *S3FileStorage) GetObjectURL(key string) (url string, err error) {
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
 	})
+
+	urlParse, err := url2.Parse(fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.BucketName, *s3Client.Config.Region, key))
+	url = urlParse.String()
+
 	if err = request.Send(); err != nil {
 		return
 	}
-	urlParse, err := url2.Parse(fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.BucketName, *s3Client.Config.Region, key))
-	url = urlParse.String()
 	return
 }
 

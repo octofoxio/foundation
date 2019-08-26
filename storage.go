@@ -59,21 +59,28 @@ func (s *S3FileStorage) GetJSONObject(key string, data interface{}) (err error) 
 	return nil
 }
 
-func (s *S3FileStorage) GetObjectURL(key string) (url string, err error) {
+func (s *S3FileStorage) getURLByPath(bucketName, region, key string) (string, error) {
+	urlParse, err := url2.Parse(fmt.Sprintf("https://%s.s3.%s.amazonaws.com/", bucketName, region))
+	if err != nil {
+		return "", err
+	}
+	urlParse.Path = path.Join(key)
+	return urlParse.String(), nil
+}
+func (s *S3FileStorage) GetObjectURL(key string) (objectURL string, err error) {
 	s3Client, err := s.s3()
 	if err != nil {
 		return
 	}
-	urlParse, err := url2.Parse(fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.BucketName, *s3Client.Config.Region, key))
-	if err != nil {
-		return "", err
-	}
-
-	url = urlParse.String()
 	request, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
 	})
+
+	objectURL, err = s.getURLByPath(s.BucketName, *s3Client.Config.Region, key)
+	if err != nil {
+		return objectURL, err
+	}
 
 	if err = request.Send(); err != nil {
 		return

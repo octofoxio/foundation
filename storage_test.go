@@ -6,7 +6,9 @@ package foundation
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/octofoxio/foundation/errors"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -59,5 +61,47 @@ func TestS3FileStorage_RemoveObject(t *testing.T) {
 		p, err := fs.getURLByPath("test-bucket", "ap-southeast-1", "/billpayment/image.png")
 		assert.NoError(t, err)
 		assert.EqualValues(t, "https://test-bucket.s3.ap-southeast-1.amazonaws.com/billpayment/image.png", p)
+	}
+}
+
+func TestS3StorageIntegration(t *testing.T) {
+	// only on credential provide
+	// and require create a bucket name foundation-test, to run full test
+	// * Access Key ID:     AWS_ACCESS_KEY_ID
+	// * Secret Access Key: AWS_SECRET_ACCESS_KEY
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "" {
+		t.Skip()
+	}
+	awsConfig := &aws.Config{
+		Region: aws.String("ap-southeast-1"),
+		Credentials: credentials.NewChainCredentials([]credentials.Provider{
+			&credentials.EnvProvider{},
+		}),
+	}
+	ss := NewS3FileStorage("foundation-test", awsConfig)
+
+	err := ss.PutObject(".foundationrc", []byte("just for fun"))
+	assert.NoError(t, err)
+
+	rcFile, err := ss.GetObjectURL(".foundationrc")
+	assert.NoError(t, err)
+	t.Log("get object url: " + rcFile)
+
+	t.Log("test invalid key")
+	{
+		rcFile, err := ss.GetObjectURL(".foundationrcc")
+		assert.Error(t, err)
+		assert.NotEmpty(t, rcFile)
+		assert.IsType(t, &errors.Error{}, err)
+		assert.EqualValues(t, err.(*errors.Error).Type(), errors.ErrorTypeNotfound)
+		t.Log("error: ", err.Error())
+	}
+
+	t.Log("test get object")
+	{
+		output, err := ss.GetObject(".foundationrc")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, output)
+		t.Logf("body: %s", string(output))
 	}
 }

@@ -10,8 +10,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/octofoxio/foundation/errors"
 	"github.com/octofoxio/foundation/logger"
 	"io"
 	"io/ioutil"
@@ -72,20 +74,30 @@ func (s *S3FileStorage) GetObjectURL(key string) (objectURL string, err error) {
 	if err != nil {
 		return
 	}
-	request, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
-		Bucket: aws.String(s.BucketName),
-		Key:    aws.String(key),
-	})
 
+	// create new object URL
 	objectURL, err = s.getURLByPath(s.BucketName, *s3Client.Config.Region, key)
 	if err != nil {
 		return objectURL, err
 	}
 
-	if err = request.Send(); err != nil {
-		return
+	// validate if object exists
+	_, err = s3Client.GetObjectAcl(&s3.GetObjectAclInput{
+		Bucket: aws.String(s.BucketName),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case s3.ErrCodeNoSuchKey:
+				return objectURL, errors.New(errors.ErrorTypeNotfound, fmt.Sprintf("file %s not found", key))
+			default:
+				return objectURL, err
+			}
+		}
+		return objectURL, err
 	}
-	return
+	return objectURL, err
 }
 
 func (s *S3FileStorage) GetObjectPreSignURL(key string) (url string, err error) {
@@ -133,6 +145,8 @@ func (s *S3FileStorage) GetPreSignUploadURL(key string, size int64) (url string,
 	return
 }
 
+// GetObjectReader caller should manually close io reader
+// for prevent memory leaking
 func (s *S3FileStorage) GetObjectReader(key string) (reader io.ReadCloser, err error) {
 	s3Client, err := s.s3()
 	if err != nil {
@@ -189,10 +203,18 @@ func (s *S3FileStorage) PutPublicObject(key string, data []byte) (err error) {
 }
 
 func (s *S3FileStorage) GetObject(key string) (result []byte, err error) {
-	output, err := s.GetObjectReader(key)
+	output, err := s.GetObjectReader(key) // this method get reader from s3 API but not close
+	defer func() {
+		err = output.Close() // close response reader after read every bytes into memory
+		if err != nil {
+			fmt.Printf("CANNOT CLOSE OBJECT READER POSSIBLE TO HAVE SOME MEMORY LEAK %s \n", key)
+			fmt.Println(err.Error())
+		}
+	}()
 	if err != nil {
 		return result, err
 	}
+	// get all result to byte array
 	result, err = ioutil.ReadAll(output)
 	return
 }

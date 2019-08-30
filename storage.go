@@ -109,14 +109,6 @@ func (s *S3FileStorage) GetObjectPreSignURL(key string) (url string, err error) 
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
 	})
-	defer func() {
-		if request.HTTPRequest != nil {
-			_ = request.HTTPRequest.Body.Close()
-		}
-		if request.HTTPResponse != nil {
-			_ = request.HTTPResponse.Body.Close()
-		}
-	}()
 	url, err = request.Presign(7 * 24 * time.Hour)
 	return
 }
@@ -211,9 +203,9 @@ func (s *S3FileStorage) PutPublicObject(key string, data []byte) (err error) {
 }
 
 func (s *S3FileStorage) GetObject(key string) (result []byte, err error) {
-	output, err := s.GetObjectReader(key)
+	output, err := s.GetObjectReader(key) // this method get reader from s3 API but not close
 	defer func() {
-		err = output.Close() // close response reader
+		err = output.Close() // close response reader after read every bytes into memory
 		if err != nil {
 			fmt.Printf("CANNOT CLOSE OBJECT READER POSSIBLE TO HAVE SOME MEMORY LEAK %s \n", key)
 			fmt.Println(err.Error())

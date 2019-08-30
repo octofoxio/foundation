@@ -205,6 +205,10 @@ func (s *S3FileStorage) PutPublicObject(key string, data []byte) (err error) {
 func (s *S3FileStorage) GetObject(key string) (result []byte, err error) {
 	output, err := s.GetObjectReader(key) // this method get reader from s3 API but not close
 	defer func() {
+		// skip close body if output == nil
+		if output == nil {
+			return
+		}
 		err = output.Close() // close response reader after read every bytes into memory
 		if err != nil {
 			fmt.Printf("CANNOT CLOSE OBJECT READER POSSIBLE TO HAVE SOME MEMORY LEAK %s \n", key)

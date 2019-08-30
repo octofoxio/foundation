@@ -82,16 +82,10 @@ func (s *S3FileStorage) GetObjectURL(key string) (objectURL string, err error) {
 	}
 
 	// validate if object exists
-	output, err := s3Client.GetObject(&s3.GetObjectInput{
+	_, err = s3Client.GetObjectAcl(&s3.GetObjectAclInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
 	})
-	defer func() {
-		err = output.Body.Close()
-		if err != nil {
-			fmt.Printf("CANNOT CLOSE S3 REQUEST RESPONSE BODY POSSIBLE TO HAVE SOME MEMORY LEAK (%s)", key)
-		}
-	}()
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {

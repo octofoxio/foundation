@@ -280,7 +280,11 @@ func (l *LocalFileStorage) GetPreSignUploadURL(key string, size int64) (url stri
 }
 
 func (l *LocalFileStorage) GetObjectReader(key string) (result io.ReadCloser, err error) {
-	panic("implement me")
+	f, err := os.Open(key)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
 }
 
 func (l *LocalFileStorage) PutObject(key string, data []byte) (err error) {

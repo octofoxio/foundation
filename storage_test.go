@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/octofoxio/foundation/errors"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -21,6 +22,13 @@ func TestNewLocalFileStorage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, u)
 	t.Log(u)
+
+	readCloser, err := local.GetObjectReader("./storage.go")
+	t.Log(err)
+	defer func() { _ = readCloser.Close() }()
+	b, err := ioutil.ReadAll(readCloser)
+	t.Log(err)
+	t.Log(string(b))
 }
 
 type localAWSEndpointResolver struct{}

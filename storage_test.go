@@ -112,4 +112,11 @@ func TestS3StorageIntegration(t *testing.T) {
 		assert.NotEmpty(t, output)
 		t.Logf("body: %s", string(output))
 	}
+
+	t.Log("test get invalid object")
+	{
+		output, err := ss.GetObject(".foundationrcc")
+		assert.Error(t, err)
+		assert.Empty(t, output)
+	}
 }

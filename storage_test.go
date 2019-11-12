@@ -5,6 +5,7 @@
 package foundation
 
 import (
+	"bytes"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
@@ -21,7 +22,14 @@ func TestNewLocalFileStorage(t *testing.T) {
 	u, err := local.GetObjectURL("./storage.go")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, u)
+
 	t.Log(u)
+
+	err = local.PutObjectFromReadSeeker(".storage/test", bytes.NewReader([]byte("this from read seeker")))
+	assert.NoError(t, err)
+	dataFromReadSeeker, err := local.GetObject(".storage/test")
+	assert.NoError(t, err)
+	assert.Equal(t, []byte("this from read seeker"), dataFromReadSeeker)
 
 	readCloser, err := local.GetObjectReader("./storage.go")
 	t.Log(err)
@@ -89,6 +97,9 @@ func TestS3StorageIntegration(t *testing.T) {
 	ss := NewS3FileStorage("foundation-test", awsConfig)
 
 	err := ss.PutObject(".foundationrc", []byte("just for fun"))
+	assert.NoError(t, err)
+
+	err = ss.PutObjectFromReadSeeker(".foundationrc-read-seeker", bytes.NewReader([]byte("this is from read seeker")))
 	assert.NoError(t, err)
 
 	rcFile, err := ss.GetObjectURL(".foundationrc")

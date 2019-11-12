@@ -26,7 +26,9 @@ import (
 type FileStorage interface {
 	GetObject(key string) (result []byte, err error)
 	PutObject(key string, data []byte) (err error)
+	PutObjectFromReadSeeker(key string, reader io.ReadSeeker) (err error)
 	PutPublicObject(key string, data []byte) (err error)
+	PutPublicObjectFromReadSeeker(key string, reader io.ReadSeeker) (err error)
 	RemoveObject(key string) (err error)
 	GetJSONObject(key string, data interface{}) (err error)
 	GetObjectURL(key string) (url string, err error)
@@ -164,16 +166,20 @@ func (s *S3FileStorage) GetObjectReader(key string) (reader io.ReadCloser, err e
 }
 
 func (s *S3FileStorage) PutObject(key string, data []byte) (err error) {
+	r := bytes.NewReader(data)
+	return s.PutObjectFromReadSeeker(key, r)
+}
+
+func (s *S3FileStorage) PutObjectFromReadSeeker(key string, reader io.ReadSeeker) (err error) {
 	s3Client, err := s.s3()
 	if err != nil {
 		return err
 	}
 
-	r := bytes.NewReader(data)
 	putObjectOutput, err := s3Client.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
-		Body:   r,
+		Body:   reader,
 	})
 	if err != nil {
 		return err
@@ -183,12 +189,16 @@ func (s *S3FileStorage) PutObject(key string, data []byte) (err error) {
 }
 
 func (s *S3FileStorage) PutPublicObject(key string, data []byte) (err error) {
+	r := bytes.NewReader(data)
+	return s.PutPublicObjectFromReadSeeker(key, r)
+}
+
+func (s *S3FileStorage) PutPublicObjectFromReadSeeker(key string, r io.ReadSeeker) (err error) {
 	s3Client, err := s.s3()
 	if err != nil {
 		return err
 	}
 
-	r := bytes.NewReader(data)
 	putObjectOutput, err := s3Client.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
@@ -229,6 +239,18 @@ func NewS3FileStorage(bucketName string, awsConfig *aws.Config) *S3FileStorage {
 
 type LocalFileStorage struct {
 	Path string
+}
+
+func (l *LocalFileStorage) PutObjectFromReadSeeker(key string, reader io.ReadSeeker) (err error) {
+	r, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return err
+	}
+	return l.PutObject(key, r)
+}
+
+func (l *LocalFileStorage) PutPublicObjectFromReadSeeker(key string, reader io.ReadSeeker) (err error) {
+	return l.PutObjectFromReadSeeker(key, reader)
 }
 
 func (l *LocalFileStorage) GetJSONObject(key string, data interface{}) (err error) {

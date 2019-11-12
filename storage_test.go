@@ -94,7 +94,7 @@ func TestS3StorageIntegration(t *testing.T) {
 			&credentials.EnvProvider{},
 		}),
 	}
-	ss := NewS3FileStorage("major-foundation-test", awsConfig)
+	ss := NewS3FileStorage("foundation-test", awsConfig)
 
 	err := ss.PutObject(".foundationrc", []byte("just for fun"))
 	assert.NoError(t, err)

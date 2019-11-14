@@ -359,7 +359,7 @@ func (l *LocalFileStorage) GetObject(key string) (result []byte, err error) {
 }
 
 func (l *LocalFileStorage) Exists(key string) (exists bool, err error) {
-	info, err := os.Stat(key)
+	info, err := os.Stat(path.Join(l.Path, key))
 	if os.IsNotExist(err) {
 		return false, nil
 	} else if err != nil {

@@ -35,6 +35,7 @@ type FileStorage interface {
 	GetObjectPreSignURL(key string) (url string, err error)
 	GetObjectReader(key string) (result io.ReadCloser, err error)
 	GetPreSignUploadURL(key string, size int64) (url string, err error)
+	Exists(key string) (exists bool, err error)
 }
 
 type S3FileStorage struct {
@@ -233,6 +234,11 @@ func (s *S3FileStorage) GetObject(key string) (result []byte, err error) {
 	return
 }
 
+func (s *S3FileStorage) Exists(key string) (exists bool, err error) {
+	// not yet implements
+	return true, nil
+}
+
 func NewS3FileStorage(bucketName string, awsConfig *aws.Config) *S3FileStorage {
 	return &S3FileStorage{BucketName: bucketName, awsConfig: awsConfig, log: logger.New("S3FileStorage")}
 }
@@ -350,4 +356,14 @@ func (l *LocalFileStorage) GetObject(key string) (result []byte, err error) {
 		return
 	}
 	return
+}
+
+func (l *LocalFileStorage) Exists(key string) (exists bool, err error) {
+	info, err := os.Stat(key)
+	if os.IsNotExist(err) {
+		return false, nil
+	} else if err != nil {
+		return
+	}
+	return !info.IsDir(), nil
 }

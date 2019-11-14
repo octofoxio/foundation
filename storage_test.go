@@ -131,3 +131,15 @@ func TestS3StorageIntegration(t *testing.T) {
 		assert.Empty(t, output)
 	}
 }
+
+func TestFileExists(t *testing.T) {
+	wd, _ := os.Getwd()
+	local := NewLocalFileStorage(wd)
+	exists, err := local.Exists("./storage.go")
+	assert.Nil(t, err)
+	assert.True(t, exists)
+
+	exists, err = local.Exists("./storage_x.go")
+	assert.Nil(t, err)
+	assert.False(t, exists)
+}

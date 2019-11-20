@@ -10,10 +10,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/octofoxio/foundation/errors"
 	"github.com/octofoxio/foundation/logger"
 	"io"
 	"io/ioutil"
@@ -80,26 +78,26 @@ func (s *S3FileStorage) GetObjectURL(key string) (objectURL string, err error) {
 
 	// create new object URL
 	objectURL, err = s.getURLByPath(s.BucketName, *s3Client.Config.Region, key)
-	if err != nil {
-		return objectURL, err
-	}
-
-	// validate if object exists
-	_, err = s3Client.GetObjectAcl(&s3.GetObjectAclInput{
-		Bucket: aws.String(s.BucketName),
-		Key:    aws.String(key),
-	})
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case s3.ErrCodeNoSuchKey:
-				return objectURL, errors.New(errors.ErrorTypeNotfound, fmt.Sprintf("file %s not found", key))
-			default:
-				return objectURL, err
-			}
-		}
-		return objectURL, err
-	}
+	//if err != nil {
+	//	return objectURL, err
+	//}
+	//
+	//// validate if object exists
+	//_, err = s3Client.GetObjectAcl(&s3.GetObjectAclInput{
+	//	Bucket: aws.String(s.BucketName),
+	//	Key:    aws.String(key),
+	//})
+	//if err != nil {
+	//	if aerr, ok := err.(awserr.Error); ok {
+	//		switch aerr.Code() {
+	//		case s3.ErrCodeNoSuchKey:
+	//			return objectURL, errors.New(errors.ErrorTypeNotfound, fmt.Sprintf("file %s not found", key))
+	//		default:
+	//			return objectURL, err
+	//		}
+	//	}
+	//	return objectURL, err
+	//}
 	return objectURL, err
 }
 

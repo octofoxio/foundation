@@ -84,18 +84,17 @@ func (g *globalLogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 
 	var (
-		RFCDate     = time.Now().Format(time.RFC1123Z + " ")
-		ServiceID   = entry.Data[fieldServiceID]
-		ServiceInfo = entry.Data[fieldServiceInfo]
-		UserID      = entry.Data[fieldUserID]
-		RequestID   = entry.Data[fieldRequestID]
-		RequestURL  = entry.Data[fieldURL]
+		dateTimeFormat = "2006-01-02T15:04:05.000000-0700"
+		RFCDate        = time.Now().Format(dateTimeFormat)
+		ServiceID      = entry.Data[fieldServiceID]
+		ServiceInfo    = entry.Data[fieldServiceInfo]
+		UserID         = entry.Data[fieldUserID]
+		RequestID      = entry.Data[fieldRequestID]
+		RequestURL     = entry.Data[fieldURL]
 	)
 
 	b.WriteString(RFCDate)
-	if RequestID != nil {
-		b.WriteString(fmt.Sprintf("(%s)", RequestID))
-	}
+	printToBuffer(b, RequestID, "-")
 	printToBuffer(b, strings.ToUpper(entry.Level.String()), "INFO")
 	printToBuffer(b, UserID, "system")
 	if RequestURL != nil && RequestURL != "" {
